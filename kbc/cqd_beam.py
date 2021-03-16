@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os.path as osp
 import argparse
 import pickle
@@ -9,7 +12,7 @@ from kbc.utils import preload_env
 from kbc.metrics import evaluation
 
 
-def run_all_experiments(kbc_path, dataset_hard, dataset_complete, dataset_name, t_norm='min', candidates=3, scores_normalize=0):
+def run(kbc_path, dataset_hard, dataset_complete, dataset_name, t_norm='min', candidates=3, scores_normalize=0):
 	experiments = [t.value for t in QuerDAG]
 	experiments.remove(QuerDAG.TYPE1_1.value)
 
@@ -19,14 +22,14 @@ def run_all_experiments(kbc_path, dataset_hard, dataset_complete, dataset_name, 
 	rank = path_entries[path_entries.index('rank') + 1] if 'rank' in path_entries else 'None'
 
 	for exp in experiments:
-		metrics = query_answer_BF(kbc_path, dataset_hard, dataset_complete, t_norm, exp, candidates, scores_normalize)
+		metrics = answer(kbc_path, dataset_hard, dataset_complete, t_norm, exp, candidates, scores_normalize)
 
 		with open(f'topk_d={dataset_name}_t={t_norm}_e={exp}_rank={rank}_k={candidates}_sn={scores_normalize}.json', 'w') as fp:
 			json.dump(metrics, fp)
 	return
 
 
-def query_answer_BF(kbc_path, dataset_hard, dataset_complete, t_norm='min', query_type=QuerDAG.TYPE1_2, candidates=3, scores_normalize = 0):
+def answer(kbc_path, dataset_hard, dataset_complete, t_norm='min', query_type=QuerDAG.TYPE1_2, candidates=3, scores_normalize = 0):
 	env = preload_env(kbc_path, dataset_hard, query_type, mode='hard')
 	env = preload_env(kbc_path, dataset_complete, query_type, mode='complete')
 
@@ -112,6 +115,6 @@ if __name__ == "__main__":
 	data_complete = pickle.load(open(data_complete_path, 'rb'))
 
 	candidates = int(args.candidates)
-	run_all_experiments(args.model_path, data_hard, data_complete,
-						dataset, t_norm=args.t_norm, candidates=candidates,
-						scores_normalize=int(args.scores_normalize))
+	run(args.model_path, data_hard, data_complete,
+		dataset, t_norm=args.t_norm, candidates=candidates,
+		scores_normalize=int(args.scores_normalize))

@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import argparse
 import pickle
 import os.path as osp
-from pathlib import Path
 import json
 
 from tqdm import tqdm
