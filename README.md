@@ -23,9 +23,9 @@ Please follow the instructions next to reproduce the results in our experiments.
 
 We recommend creating a new environment:
 
-```
-conda create --name cqd python=3.8 && conda activate cqd
-pip install -r requirements.txt
+```bash
+% conda create --name cqd python=3.8 && conda activate cqd
+% pip install -r requirements.txt
 ```
 
 ### 2. Download the data
@@ -33,9 +33,9 @@ pip install -r requirements.txt
 We use 3 knowledge graphs: FB15k, FB15k-237, and NELL.
 From the root of the repository, download and extract the files to obtain the folder `data`, containing the sets of triples and queries for each graph.
 
-```sh
-wget http://data.neuralnoise.com/cqd-data.tgz
-tar xvf cqd-data.tgz
+```bash
+% wget http://data.neuralnoise.com/cqd-data.tgz
+% tar xvf cqd-data.tgz
 ```
 
 ### 3. Download the models
@@ -43,9 +43,9 @@ tar xvf cqd-data.tgz
 Then you need neural link prediction models -- one for each of the datasets.
 Our pre-trained neural link prediction models are available here:
 
-```sh
-wget http://data.neuralnoise.com/cqd-models.tgz
-tar xvf cqd-data.tgz
+```bash
+% wget http://data.neuralnoise.com/cqd-models.tgz
+% tar xvf cqd-data.tgz
 ```
 
 ### 3. Alternative -- Train your own models
@@ -54,20 +54,20 @@ To obtain entity and relation embeddings, we use ComplEx. Use the next commands 
 
 #### FB15k
 
-```sh
-python -m kbc.learn data/FB15k --rank 1000 --reg 0.01 --max_epochs 100  --batch_size 100
+```bash
+% python -m kbc.learn data/FB15k --rank 1000 --reg 0.01 --max_epochs 100  --batch_size 100
 ```
 
 #### FB15k-237
 
-```sh
-python -m kbc.learn data/FB15k-237 --rank 1000 --reg 0.05 --max_epochs 100  --batch_size 1000
+```bash
+% python -m kbc.learn data/FB15k-237 --rank 1000 --reg 0.05 --max_epochs 100  --batch_size 1000
 ```
 
 #### NELL
 
-```sh
-python -m kbc.learn data/NELL --rank 1000 --reg 0.05 --max_epochs 100  --batch_size 1000
+```bash
+% python -m kbc.learn data/NELL --rank 1000 --reg 0.05 --max_epochs 100  --batch_size 1000
 ```
 
 Once training is done, the models will be saved in the `models` directory.
@@ -80,14 +80,14 @@ CQD can answer complex queries via continuous (CQD-CO) or combinatorial optimisa
 
 Use the `kbc.cqd_beam` script to answer queries, providing the path to the dataset, and the saved link predictor trained in the previous step. For example,
 
-```sh
-python -m kbc.cqd_beam --model_path models/[model_filename].pt
+```bash
+% python -m kbc.cqd_beam --model_path models/[model_filename].pt
 ```
 
 Example:
 
-```shell
-PYTHONPATH=. python3 kbc/cqd_beam.py \
+```bash
+% PYTHONPATH=. python3 kbc/cqd_beam.py \
   --model_path models/FB15k-model-rank-1000-epoch-100-*.pt \
   --dataset FB15K --mode test --t_norm product --candidates 64 \
   --scores_normalize 0 data/FB15k
@@ -105,8 +105,8 @@ ComplEx(
 
 This will save a series of JSON fils with results, e.g.
 
-```sh
-cat "topk_d=FB15k_t=product_e=2_2_rank=1000_k=64_sn=0.json"
+```bash
+% cat "topk_d=FB15k_t=product_e=2_2_rank=1000_k=64_sn=0.json"
 {
   "MRRm_new": 0.7542805715523118,
   "MRm_new": 50.71081983144581,
@@ -120,6 +120,23 @@ cat "topk_d=FB15k_t=product_e=2_2_rank=1000_k=64_sn=0.json"
 
 Use the `kbc.cqd_co` script to answer queries, providing the path to the dataset, and the saved link predictor trained in the previous step. For example,
 
-```sh
-python -m kbc.cqd_co data/FB15k --model_path models/[model_filename].pt --chain_type 1_2
+```bash
+% python -m kbc.cqd_co data/FB15k --model_path models/[model_filename].pt --chain_type 1_2
+```
+
+### Final Results
+
+All results from the paper can be produced as follows:
+
+```bash
+% cd results/topk
+% ../topk-parse.py *.json | grep rank=1000
+d=FB15K rank=1000 & 0.779 & 0.584 & 0.796 & 0.837 & 0.377 & 0.658 & 0.839 & 0.355
+d=FB237 rank=1000 & 0.279 & 0.219 & 0.352 & 0.457 & 0.129 & 0.249 & 0.284 & 0.128
+d=NELL rank=1000 & 0.343 & 0.297 & 0.410 & 0.529 & 0.168 & 0.283 & 0.536 & 0.157
+% cd ../cont
+% ../cont-parse.py *.json | grep rank=1000
+d=FB15k rank=1000 & 0.454 & 0.191 & 0.796 & 0.837 & 0.336 & 0.513 & 0.816 & 0.319
+d=FB15k-237 rank=1000 & 0.213 & 0.131 & 0.352 & 0.457 & 0.146 & 0.222 & 0.281 & 0.132
+d=NELL rank=1000 & 0.265 & 0.220 & 0.410 & 0.529 & 0.196 & 0.302 & 0.531 & 0.194
 ```
