@@ -1,6 +1,6 @@
 # Continuous Query Decomposition
 
-This repository contains the official implementation for our ICLR 2021 (Oral) paper, [**Complex Query Answering with Neural Link Predictors**](https://openreview.net/forum?id=Mos9F9kDwkz):
+This repository contains the official implementation for our ICLR 2021 (Oral, Outstanding Paper Award) paper, [**Complex Query Answering with Neural Link Predictors**](https://openreview.net/forum?id=Mos9F9kDwkz):
 
 ```bibtex
 @inproceedings{
