@@ -8,6 +8,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Dict, Optional, Callable
 import math
+import logging
 
 import torch
 from torch import nn
@@ -439,7 +440,7 @@ class KBCModel(nn.Module, ABC):
 			arg1: Optional[Tensor],
 			arg2: Optional[Tensor],
 			candidates: int = 5,
-			last_step = False) -> Tuple[Tensor, Tensor]:
+			last_step = False, env: DynKBCSingleton = None) -> Tuple[Tensor, Tensor]:
 
 		z_scores, z_emb, z_indices = None, None , None
 
@@ -462,6 +463,14 @@ class KBCModel(nn.Module, ABC):
 			z_emb = self.entity_embeddings(z_indices)
 			assert z_emb.shape[0] == batch_size
 			assert z_emb.shape[2] == embedding_size
+
+			if env is not None:
+				logger = logging.getLogger('explain')
+				logger.info(f'{"Rank":<6} {"X":<30} {"Score":<8}')
+				for i in range(z_indices.shape[1]):
+					ent_id = z_indices[0, i].item()
+					ent_score = torch.sigmoid(z_scores[0, i]).item()
+					logger.info(f'{i:<6} {env.fb2name[env.ent_id2fb[ent_id]]:<30} {ent_score:<8.4f}')
 		else:
 			z_scores = scores
 
@@ -485,7 +494,7 @@ class KBCModel(nn.Module, ABC):
 	def min_max_rescale(self, x):
 		return (x-torch.min(x))/(torch.max(x) - torch.min(x))
 
-	def query_answering_BF(self, env: DynKBCSingleton, candidates: int = 5, t_norm: str = 'min', batch_size = 1, scores_normalize = 0):
+	def query_answering_BF(self, env: DynKBCSingleton, candidates: int = 5, t_norm: str = 'min', batch_size = 1, scores_normalize = 0, explain=False):
 
 		res = None
 
@@ -504,7 +513,24 @@ class KBCModel(nn.Module, ABC):
 
 		batches = make_batches(nb_queries, batch_size)
 
-		for batch in tqdm.tqdm(batches):
+		explain = env.graph_type == '1_2' and explain
+		if explain:
+			logger = logging.getLogger('explain')
+			logger.setLevel(logging.INFO)
+			fh = logging.FileHandler('explain.log', mode='w')
+			fh.setLevel(logging.INFO)
+			logger.addHandler(fh)
+
+		for i, batch in enumerate(tqdm.tqdm(batches)):
+			if explain:
+				query = env.keys_complete[i]
+				anchor, rel1, x1, x2, rel2, x3 = query.split('_')
+				anchor = env.fb2name[env.ent_id2fb[int(anchor)]]
+				rel1 = env.rel_id2fb[int(rel1)]
+				rel2 = env.rel_id2fb[int(rel2)]
+				logger.info('-' * 100)
+				logger.info(
+					f'Query: ?Y:∃ X.({anchor}, {rel1}, X) and (X, {rel2}, Y)')
 
 			nb_branches = 1
 			nb_ent = 0
@@ -554,7 +580,7 @@ class KBCModel(nn.Module, ABC):
 							if f"rhs_{ind}" not in candidate_cache:
 
 								# print("STTEEE MTA")
-								z_scores, rhs_3d = self.get_best_candidates(rel, lhs, None, candidates, last_step)
+								z_scores, rhs_3d = self.get_best_candidates(rel, lhs, None, candidates, last_step, env if explain else None)
 
 								# [Num_queries * Candidates^K]
 								z_scores_1d = z_scores.view(-1)
@@ -640,7 +666,7 @@ class KBCModel(nn.Module, ABC):
 								continue
 
 							if f"rhs_{ind}" not in candidate_cache or last_step:
-								z_scores, rhs_3d = self.get_best_candidates(rel, lhs, None, candidates, last_step)
+								z_scores, rhs_3d = self.get_best_candidates(rel, lhs, None, candidates, last_step, env if explain else None)
 
 								# [B * Candidates^K] or [B, S-1, N]
 								z_scores_1d = z_scores.view(-1)
@@ -690,6 +716,36 @@ class KBCModel(nn.Module, ABC):
 				# S ==  K**(V-1)
 				scores_2d = batch_scores.view(batch_size,-1, nb_ent )
 				res, _ = torch.max(scores_2d, dim=1)
+
+
+				if explain:
+					final_scores = scores_2d.squeeze()
+					for j in range(final_scores.shape[0]):
+						logger.info(f'X = {j}')
+
+						z_scores, z_indices = torch.topk(final_scores, k=candidates, dim=1)
+
+						logger.info(f'\t{"Rank":<6} {"Y":<30} {"Final score":<12}')
+						for k in range(z_indices.shape[1]):
+							ent_id = z_indices[j, k].item()
+							ent_score = z_scores[j, k].item()
+							logger.info(f'\t{k:<6} {env.fb2name[env.ent_id2fb[ent_id]]:<30} {ent_score:<8.4f}')
+
+					test_answers = set(env.target_ids_complete[query])
+
+					res_top_val, res_top_idx = torch.topk(res.squeeze(), k=candidates)
+					logger.info(f'Top {candidates} final answers')
+					logger.info(f'{"Rank":<6} {"Y":<30} {"Final score":<12}')
+					for j in range(res_top_val.shape[0]):
+						ent_id = res_top_idx[j].item()
+						ent_score = res_top_val[j].item()
+						correct = '✓' if ent_id in test_answers else '✗'
+						logger.info(f'[{correct}] {j:<6} {env.fb2name[env.ent_id2fb[ent_id]]:<30} {ent_score:<8.4f}')
+
+					logger.info(f'Ground truth answers')
+					for ans in test_answers:
+						logger.info(f'- {env.fb2name[env.ent_id2fb[ans]]}')
+
 				scores = res if scores is None else torch.cat([scores,res])
 
 				del batch_scores, scores_2d, res,candidate_cache
@@ -698,6 +754,9 @@ class KBCModel(nn.Module, ABC):
 				assert False, "Batch Scores are empty: an error went uncaught."
 
 			res = scores
+
+		if explain:
+			fh.close()
 
 		return res
 

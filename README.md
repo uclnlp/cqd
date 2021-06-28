@@ -140,3 +140,14 @@ d=FB15k rank=1000 & 0.454 & 0.191 & 0.796 & 0.837 & 0.336 & 0.513 & 0.816 & 0.31
 d=FB15k-237 rank=1000 & 0.213 & 0.131 & 0.352 & 0.457 & 0.146 & 0.222 & 0.281 & 0.132
 d=NELL rank=1000 & 0.265 & 0.220 & 0.410 & 0.529 & 0.196 & 0.302 & 0.531 & 0.194
 ```
+
+### Generating explanations
+
+When using CQD-Beam for query answering, we can inspect intermediate decisions.
+We provide an example implementation for the case of 2p queries over FB15k-237,
+that generates a log file. To generate this log, add the `--explain` flag when running the
+`cqd_beam` script. The file will be saved as `explain.log`.
+
+**Note:** for readability, this requires an extra file mapping FB15k-237 entity identifiers
+to their original names. Download the file from [this link](https://surfdrive.surf.nl/files/index.php/s/O6yQsBXArSEoYz9/download)
+to the `data/FB15k-237` path and untar it.

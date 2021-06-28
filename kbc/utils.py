@@ -5,6 +5,7 @@ import time
 import enum
 from collections import defaultdict
 import subprocess
+import pickle
 
 
 from typing import List, Tuple
@@ -161,8 +162,9 @@ class DynKBCSingleton:
         return DynKBCSingleton.__instance
 
 
-    def set_attr(self, kbc, chains, parts, target_ids_hard, keys_hard, target_ids_complete, keys_complete,\
-    chain_instructions, graph_type, lhs_norm, cuda ):
+    def set_attr(self, kbc, chains, parts, target_ids_hard, keys_hard,
+                 target_ids_complete, keys_complete,chain_instructions,
+                 graph_type, lhs_norm, cuda, ent_id2fb, rel_id2fb, fb2name):
         self.kbc = kbc
         self.chains = chains
         self.parts = parts
@@ -179,6 +181,9 @@ class DynKBCSingleton:
         self.lhs_norm = lhs_norm
         self.chain_instructions = chain_instructions
         self.graph_type = graph_type
+        self.ent_id2fb = ent_id2fb
+        self.rel_id2fb = rel_id2fb
+        self.fb2name = fb2name
         self.__instance = self
 
     def __init__(self,kbc = None, chains = None , parts = None, \
@@ -244,7 +249,7 @@ def get_keys_and_targets(parts, targets, graph_type):
     return target_ids, keys
 
 
-def preload_env(kbc_path, dataset, graph_type, mode="hard"):
+def preload_env(kbc_path, dataset, graph_type, mode="hard", kg_path=None):
 
     from kbc.learn import kbc_model_load
 
@@ -756,7 +761,17 @@ def preload_env(kbc_path, dataset, graph_type, mode="hard"):
             chain_instructions = create_instructions([parts[0][0], parts[1][0], parts[2][0]])
 
         if mode == 'hard':
-            env.set_attr(kbc, chains, parts, target_ids, keys, None, None, chain_instructions, graph_type, lhs_norm, False )
+            if kg_path is not None:
+                ent_id2fb = pickle.load(open(osp.join(kg_path, 'ind2ent.pkl'), 'rb'))
+                rel_id2fb = pickle.load(open(osp.join(kg_path, 'ind2rel.pkl'), 'rb'))
+                fb2name = defaultdict(lambda: '[missing]')
+                with open(osp.join(kg_path, 'entity2text.txt')) as f:
+                    for line in f:
+                        fb_id, name = line.strip().split('\t')
+                        fb2name[fb_id] = name
+
+
+            env.set_attr(kbc, chains, parts, target_ids, keys, None, None, chain_instructions, graph_type, lhs_norm, False, ent_id2fb, rel_id2fb, fb2name)
 
             # env.set_attr(kbc,chains,parts,target_ids, keys, chain_instructions , graph_type, lhs_norm)
             # def set_attr(kbc, chains, parts, target_ids_hard, keys_hard, target_ids_complete, keys_complete, chain_instructions, graph_type, lhs_norm, cuda ):
