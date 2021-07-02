@@ -45,7 +45,7 @@ Our pre-trained neural link prediction models are available here:
 
 ```bash
 % wget http://data.neuralnoise.com/cqd-models.tgz
-% tar xvf cqd-data.tgz
+% tar xvf cqd-models.tgz
 ```
 
 ### 3. Alternative -- Train your own models
