@@ -249,7 +249,8 @@ def get_keys_and_targets(parts, targets, graph_type):
     return target_ids, keys
 
 
-def preload_env(kbc_path, dataset, graph_type, mode="hard", kg_path=None):
+def preload_env(kbc_path, dataset, graph_type, mode="hard", kg_path=None,
+                explain=False):
 
     from kbc.learn import kbc_model_load
 
@@ -761,7 +762,7 @@ def preload_env(kbc_path, dataset, graph_type, mode="hard", kg_path=None):
             chain_instructions = create_instructions([parts[0][0], parts[1][0], parts[2][0]])
 
         if mode == 'hard':
-            if kg_path is not None:
+            if kg_path is not None and explain:
                 ent_id2fb = pickle.load(open(osp.join(kg_path, 'ind2ent.pkl'), 'rb'))
                 rel_id2fb = pickle.load(open(osp.join(kg_path, 'ind2rel.pkl'), 'rb'))
                 fb2name = defaultdict(lambda: '[missing]')
@@ -769,6 +770,8 @@ def preload_env(kbc_path, dataset, graph_type, mode="hard", kg_path=None):
                     for line in f:
                         fb_id, name = line.strip().split('\t')
                         fb2name[fb_id] = name
+            else:
+                ent_id2fb, rel_id2fb, fb2name = None, None, None
 
 
             env.set_attr(kbc, chains, parts, target_ids, keys, None, None, chain_instructions, graph_type, lhs_norm, False, ent_id2fb, rel_id2fb, fb2name)
