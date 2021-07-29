@@ -30,8 +30,8 @@ def run(kbc_path, dataset_hard, dataset_complete, dataset_name, t_norm='min', ca
 
 
 def answer(kbc_path, dataset_hard, dataset_complete, t_norm='min', query_type=QuerDAG.TYPE1_2, candidates=3, scores_normalize = 0, kg_path=None, explain=False):
-	env = preload_env(kbc_path, dataset_hard, query_type, mode='hard', kg_path=kg_path)
-	env = preload_env(kbc_path, dataset_complete, query_type, mode='complete')
+	env = preload_env(kbc_path, dataset_hard, query_type, mode='hard', kg_path=kg_path, explain=explain)
+	env = preload_env(kbc_path, dataset_complete, query_type, mode='complete', explain=explain)
 
 	if '1' in env.chain_instructions[-1][-1]:
 		part1, part2 = env.parts
