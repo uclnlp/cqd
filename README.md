@@ -4,7 +4,7 @@
 
 ## Update
 
-We implemented CQD in the [KGReasoning framework](https://github.com/snap-stanford/KGReasoning), a library from [SNAP](http://snap.stanford.edu/) implementing several Complex Query Answering models, which supports the Query2Box and BetaE datasets. Our implementation is available [at this link](https://github.com/pminervini/KGReasoning/).
+We implemented CQD in the [KGReasoning framework](https://github.com/snap-stanford/KGReasoning), a library from [SNAP](http://snap.stanford.edu/) implementing several Complex Query Answering models, which also supports experimenting with the Query2Box and BetaE datasets (in this repo, we only consider the former). Our implementation is available [at this link](https://github.com/pminervini/KGReasoning/).
 
 ---
 
