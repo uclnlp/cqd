@@ -2,9 +2,15 @@
 
 ---
 
-## Update
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/complex-query-answering-with-neural-link-1/complex-query-answering-on-fb15k)](https://paperswithcode.com/sota/complex-query-answering-on-fb15k?p=complex-query-answering-with-neural-link-1)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/complex-query-answering-with-neural-link-1/complex-query-answering-on-fb15k-237)](https://paperswithcode.com/sota/complex-query-answering-on-fb15k-237?p=complex-query-answering-with-neural-link-1)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/complex-query-answering-with-neural-link-1/complex-query-answering-on-nell-995)](https://paperswithcode.com/sota/complex-query-answering-on-nell-995?p=complex-query-answering-with-neural-link-1)
 
-We implemented CQD in the [KGReasoning framework](https://github.com/snap-stanford/KGReasoning), a library from [SNAP](http://snap.stanford.edu/) implementing several Complex Query Answering models, which also supports experimenting with the Query2Box and BetaE datasets (in this repo, we only consider the former). Our implementation is available [at this link](https://github.com/pminervini/KGReasoning/).
+
+## Updates
+
+- In an [extended abstract for IJCAI](https://www.ijcai.org/proceedings/2022/741),  we have included additional results on the updated query answering datasets introduced with [BetaE](https://arxiv.org/abs/2010.11465). These results are also now on [paperswithcode.com](https://paperswithcode.com/paper/complex-query-answering-with-neural-link-1)!
+- We implemented CQD in the [KGReasoning framework](https://github.com/snap-stanford/KGReasoning), a library from [SNAP](http://snap.stanford.edu/) implementing several Complex Query Answering models, which also supports experimenting with the Query2Box and BetaE datasets (in this repo, we only consider the former). Our implementation is available [at this link](https://github.com/pminervini/KGReasoning/).
 
 ---
 
